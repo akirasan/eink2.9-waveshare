@@ -1,3 +1,5 @@
+
+
 /**
     @filename   :   epd2in9-demo.ino
     @brief      :   2.9inch e-paper display demo
@@ -23,7 +25,7 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
 */
-
+#include <LowPower.h>
 #include <SPI.h>
 #include <epd2in9.h>
 #include <epdpaint.h>
@@ -46,63 +48,84 @@ unsigned long time_now_s;
 
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(9600);
+  Serial.begin(115200);
   if (epd.Init(lut_full_update) != 0) {
     Serial.print("e-Paper init failed");
     return;
   }
 
+  if (epd.Init(lut_partial_update) != 0) {
+    Serial.print("e-Paper init failed");
+    return;
+  }
   /**
       there are 2 memory areas embedded in the e-paper display
       and once the display is refreshed, the memory area will be auto-toggled,
       i.e. the next action of SetFrameMemory will set the other memory area
       therefore you have to clear the frame memory twice.
   */
-  epd.ClearFrameMemory(0xFF);   // bit set = white, bit reset = black
+  epd.ClearFrameMemory(0xff);   // bit set = white, bit reset = black
   epd.DisplayFrame();
-  epd.ClearFrameMemory(0xFF);   // bit set = white, bit reset = black
+  epd.ClearFrameMemory(0xff);   // bit set = white, bit reset = black
   epd.DisplayFrame();
 
   paint.SetRotate(ROTATE_0);
   paint.SetWidth(128);
   paint.SetHeight(24);
+  paint.Clear(UNCOLORED);
 
-
-  delay(2000);
-
-  if (epd.Init(lut_partial_update) != 0) {
-    Serial.print("e-Paper init failed");
-    return;
-  }
-
-  /**
-      there are 2 memory areas embedded in the e-paper display
-      and once the display is refreshed, the memory area will be auto-toggled,
-      i.e. the next action of SetFrameMemory will set the other memory area
-      therefore you have to set the frame memory and refresh the display twice.
-  */
+  // delay(1000);
+  //
 
 }
 
-void limpiar() {
-  epd.ClearFrameMemory(0xFF);   // bit set = white, bit reset = black
-  epd.DisplayFrame();
-  epd.ClearFrameMemory(0xFF);   // bit set = white, bit reset = black
-  epd.DisplayFrame();
 
+/**
+    there are 2 memory areas embedded in the e-paper display
+    and once the display is refreshed, the memory area will be auto-toggled,
+    i.e. the next action of SetFrameMemory will set the other memory area
+    therefore you have to set the frame memory and refresh the display twice.
+*/
+void limpiar() {
+  paint.Clear(UNCOLORED);
+  epd.ClearFrameMemory(0x00);   // bit set = white, bit reset = black
+  epd.DisplayFrame();
+  epd.ClearFrameMemory(0xff);   // bit set = white, bit reset = black
+  epd.DisplayFrame();
+  epd.WaitUntilIdle();
 }
 
 void loop() {
 
+  limpiar();
+  
   epd.SetFrameMemory(IMAGE_DATA1);
   epd.DisplayFrame();
+  LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+  LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
 
-  delay(1000);
   limpiar();
+
   epd.SetFrameMemory(IMAGE_DATA2);
   epd.DisplayFrame();
+  LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+  LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
 
-  delay(1000);
   limpiar();
+
+  epd.SetFrameMemory(IMAGE_DATA4);
+  epd.DisplayFrame();
+  LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+  LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+
+  limpiar();
+
+  epd.SetFrameMemory(IMAGE_DATA5);
+  epd.DisplayFrame();
+  LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+  LowPower.powerDown(SLEEP_8S, ADC_OFF, BOD_OFF);
+
+
+
 }
 
